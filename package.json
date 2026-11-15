@@ -7,6 +7,7 @@
     "build": "mkdir -p _site && node --permission --allow-fs-read=./ --allow-fs-write=./_site/ build.mjs",
     "serve": "mkdir -p _site && node --permission --allow-fs-read=./ --allow-fs-write=./_site/ build.mjs --serve",
     "start": "npm run serve",
+    "eject": "node --permission --allow-fs-read=./ --allow-fs-write=./ eject.mjs",
     "build:unsafe": "node build.mjs"
   },
   "engines": {

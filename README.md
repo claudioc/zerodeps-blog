@@ -34,6 +34,7 @@ The story behind it: [Moving away from Eleventy](https://claudio.cica.li/posts/2
 ```sh
 npx degit claudioc/zerodeps-blog my-blog   # or click "Use this template" on GitHub
 cd my-blog
+npm run eject                              # optional: personalize config and clean up starter files
 npm run serve                              # http://localhost:8080
 ```
 
@@ -41,13 +42,15 @@ npm run serve                              # http://localhost:8080
 
 ## Make it your own
 
-Once you've started your site from this kit, remove what belongs to the starter itself rather than to your website:
+Run `npm run eject` (or `node eject.mjs --dry-run` first to preview) to automate this: it asks for your site details, updates `site.config.json` and `package.json`, replaces `README.md` with a minimal one for your site, optionally removes the sample posts and `.git`, and deletes itself.
+
+If you prefer doing it by hand, remove what belongs to the starter itself rather than to your website:
 
 - [ ] **`package.json`**: change `name`, `version` and `description`; set `author` to yourself (or remove it); update or remove `repository` and `keywords`; set `license` to your choice (or `UNLICENSED`); consider adding `"private": true` so it can't be published to npm by mistake.
 - [ ] **`LICENSE`**: delete it or replace it with your own (see [License](#license)).
 - [ ] **`README.md`**: replace this file with notes about *your* site (how to build and deploy it).
 - [ ] **Git history**: if you cloned the repository instead of using `degit` or "Use this template", start fresh with `rm -rf .git && git init`.
-- [ ] **Sample content**: remove the placeholder author "Jane Doe" and the `example.com` links from `site.config.json`, the sample posts in `src/posts/`, the about page text and the default avatar (see [Customize](#customize)).
+- [ ] **Sample content**: remove the placeholder author "Jane Doe" and the `example.com` links from `site.config.json`, the sample posts in `src/posts/`, the about page text and the default avatar (see [INSTRUCTIONS.md](INSTRUCTIONS.md#customize)).
 - [ ] **`robots.txt`**: adjust it to your needs (it currently allows every crawler).
 
 A quick check that nothing was left behind:
@@ -56,117 +59,15 @@ A quick check that nothing was left behind:
 grep -rniE "jane doe|example\.com|zerodeps-blog|claudio" --exclude-dir=_site --exclude-dir=.git .
 ```
 
-## Customize
+## Documentation
 
-1. Edit `site.config.json`: site URL, title, author, navigation, social links, content license.
-2. Replace `src/assets/avatar.svg` and `src/assets/favicon.ico`.
-3. Write your about page in `src/about/index.md`.
-4. Delete the sample posts in `src/posts/` and add your own.
-5. Restyle `src/css/main.css` to taste.
+See **[INSTRUCTIONS.md](INSTRUCTIONS.md)** for:
 
-## Writing posts
-
-Create `src/posts/<year>/<slug>.md`:
-
-```md
----
-title: 'My post'
-description: 'Short summary'
-date: 2026-01-01
-tags: ['post']        # add 'pinned' to show it on the home page
----
-First paragraph = excerpt.
----
-
-The rest of the post.
-```
-
-Put images in `src/img/` and reference them as `/img/...`.
-
-## Project layout
-
-```
-build.mjs            the whole generator + dev server
-site.config.json     your site settings
-src/_includes/       layouts and partials
-src/posts/           blog posts (Markdown)
-src/css, src/assets  styles, fonts, icons
-```
-
-## Deployment
-
-`npm run build` produces a plain folder of HTML, CSS and assets in `_site/`. Anything that can serve static files can host it. Remember to set `url` in `site.config.json` to your real domain first: it's used for the feed, the sitemap and canonical links.
-
-### Options
-
-- **Static hosts** (Cloudflare Pages, Netlify, GitHub Pages, Vercel): connect the repository, set the build command to `npm run build` and the output directory to `_site`. Make sure the build image uses Node.js ≥ 22.13 (e.g. a `NODE_VERSION=22` environment variable or an `.nvmrc` file).
-- **Your own server via rsync**: build locally and upload the result:
-
-  ```sh
-  npm run build
-  rsync -avz --delete _site/ user@example.com:/var/www/example.com/
-  ```
-
-- **Push to deploy**: on your server, a bare Git repository with a `post-receive` hook can check out the code, run `npm run build` and `rsync` the output into the web root. No `npm install` needed, since there are no dependencies.
-- **Apache**: the included `src/.htaccess` already maps 404 errors to `/404.html`.
-
-### Example Nginx configuration
-
-```nginx
-server {
-    listen 80;
-    listen [::]:80;
-    server_name example.com;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-    http2 on;
-    server_name example.com;
-
-    root /var/www/example.com;
-    index index.html;
-
-    # TLS certificates, e.g. from Let's Encrypt / Certbot
-    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-
-    # Security headers
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Permissions-Policy "interest-cohort=()" always;
-    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'" always;
-
-    # Pretty URLs: /posts/2026/hello-world/ -> /posts/2026/hello-world/index.html
-    location / {
-        try_files $uri $uri/ =404;
-    }
-
-    # Long-lived caching for static assets
-    location ~* \.(css|woff2|svg|png|jpe?g|webp|ico)$ {
-        expires 30d;
-        add_header Cache-Control "public";
-        access_log off;
-    }
-
-    # Quiet logs for common files
-    location = /robots.txt  { access_log off; log_not_found off; }
-    location = /favicon.ico { access_log off; log_not_found off; }
-
-    # Never serve hidden files (.git, .htaccess, ...)
-    location ~ /\. { deny all; access_log off; log_not_found off; }
-
-    error_page 404 /404.html;
-
-    gzip on;
-    gzip_types text/css application/javascript application/xml application/atom+xml image/svg+xml;
-}
-```
-
-Replace `example.com` and the paths with your own. If you add external scripts or fonts, adjust the `Content-Security-Policy` accordingly. Note that an `add_header` inside a `location` block replaces the server-level headers, so repeat the security headers there if you need them on assets too.
+- [Customizing your site](INSTRUCTIONS.md#customize)
+- [Writing posts](INSTRUCTIONS.md#writing-posts)
+- [Templates & `<zd-*>` tags](INSTRUCTIONS.md#templates)
+- [Project layout](INSTRUCTIONS.md#project-layout)
+- [Deployment & Nginx example](INSTRUCTIONS.md#deployment)
 
 ## Security
 

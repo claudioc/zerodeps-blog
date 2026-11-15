@@ -6,6 +6,7 @@
 //   - writes your details into site.config.json
 //   - rewrites package.json (name, author, license, private, no repository)
 //   - deletes the starter's LICENSE and replaces README.md with a minimal one
+//     (keeping INSTRUCTIONS.md for reference)
 //   - optionally removes the sample posts and the starter's Git history
 //   - deletes itself
 //
@@ -107,13 +108,10 @@ async function main() {
   const scripts = { ...rest.scripts };
   delete scripts.eject;
   const newPkg = {
+    ...rest,
     name,
     version: '0.1.0',
     private: true,
-    description,
-    ...rest,
-    name: name,
-    version: '0.1.0',
     description,
     scripts,
     author: authorEmail ? `${authorName} <${authorEmail}>` : authorName,
@@ -121,7 +119,7 @@ async function main() {
   };
   writeFile('package.json', JSON.stringify(newPkg, null, 2) + '\n');
 
-  // LICENSE and README
+  // LICENSE and README.md (INSTRUCTIONS.md stays untouched)
   remove('LICENSE');
   writeFile(
     'README.md',
@@ -138,7 +136,11 @@ npm run serve   # dev server on http://localhost:8080
 npm run build   # static site in _site/
 \`\`\`
 
-Site settings live in \`site.config.json\`, posts in \`src/posts/<year>/\`.
+Site settings live in \`site.config.json\`, posts in \`src/posts/<year>/\`. See [INSTRUCTIONS.md](INSTRUCTIONS.md) for writing posts, templates, deployment and security notes.
+
+---
+
+Bootstrapped from [zerodeps-blog](https://github.com/claudioc/zerodeps-blog) by [Claudio Cicali](https://claudio.cica.li).
 `,
   );
 
