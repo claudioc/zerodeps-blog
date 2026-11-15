@@ -1,0 +1,149 @@
+@import url(normalize.css);
+
+body {
+  color: aliceblue;
+  background-color: black;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  transition: all 0.1s ease-in;
+  animation: smokeAppear 0.5s ease forwards;
+  border: 1px solid rgba(255, 255, 255, 1.2);
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.2rem;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+svg {
+  margin-bottom: -8px;
+  margin-right: 6px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+header img {
+  border: 2px solid aliceblue;
+  border-radius: 50%;
+  transition: all 0.1s ease-in;
+  animation: smokeAppear 2s ease forwards;
+}
+
+header a {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+}
+#main {
+  padding-top: 2rem;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  height: 100dvh;
+}
+
+#main:has(a:hover) {
+  filter: brightness(1.5);
+}
+
+ul {
+  perspective: 800px;
+  animation: smokeAppear 3.5s ease forwards;
+}
+
+li {
+  margin-bottom: 1rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 1.2);
+  transform-origin: center;
+  animation: rotateItem 4s infinite alternate ease-in-out;
+}
+
+li:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+li a {
+  padding: 0.5rem 1rem;
+  display: inline-block;
+  width: 100%;
+  color: azure;
+  text-decoration: none;
+}
+
+li:nth-child(1) {
+  animation-delay: 0s;
+}
+
+li:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+li:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+li:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+li:nth-child(5) {
+  animation-delay: 1.2s;
+}
+
+li:nth-child(6) {
+  animation-delay: 1.5s;
+}
+
+h1:before,
+h1::after,
+li::after {
+  content: '';
+  position: absolute;
+  background-color: rgba(255, 255, 255, 1.2); /* Line color */
+  transform: translateX(-50%); /* Center the line horizontally */
+  height: 1rem;
+  width: 2px;
+  left: 50%;
+  animation: smokeAppear 5s ease forwards;
+}
+
+h1::after,
+li::after {
+  bottom: -1rem;
+}
+
+h1:before {
+  top: -1rem;
+}
+
+li:last-child::after {
+  display: none;
+}
+
+@keyframes rotateItem {
+  from {
+    transform: rotateY(-15deg);
+  }
+  to {
+    transform: rotateY(15deg);
+  }
+}
+
+@keyframes smokeAppear {
+  0% {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.1);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}

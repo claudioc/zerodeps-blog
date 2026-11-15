@@ -1,0 +1,30 @@
+{
+  "url": "https://example.com",
+  "title": "Jane Doe",
+  "subtitle": "Notes on software, travel and everything in between",
+  "description": "Jane Doe's personal website",
+  "genre": "personal blog",
+  "language": "en",
+  "feed": {
+    "subtitle": "Personal website"
+  },
+  "author": {
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "avatar": "/assets/avatar.svg"
+  },
+  "license": {
+    "name": "CC BY-NC 4.0",
+    "url": "http://creativecommons.org/licenses/by-nc/4.0/"
+  },
+  "navigation": [
+    { "title": "Home", "url": "/" },
+    { "title": "Archive", "url": "/posts/" },
+    { "title": "About", "url": "/about/" }
+  ],
+  "social": [
+    { "name": "Mastodon", "url": "https://mastodon.social/@example", "label": "Meet me on Mastodon" },
+    { "name": "GitHub", "url": "https://github.com/example", "label": "Check out my code" },
+    { "name": "Bluesky", "url": "https://bsky.app/profile/example.bsky.social", "label": "Follow me on Bluesky" }
+  ]
+}

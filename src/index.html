@@ -1,0 +1,25 @@
+<section>
+  <article>
+    <h1>Welcome</h1>
+    <p>
+      <strong class="hi">I am {{ metadata.author.name }}</strong> and these are <a href="/posts">my blog posts</a>.
+      You may also want to <a href="/about">know me a little bit better</a>. Enjoy your stay!
+    </p>
+  </article>
+</section>
+
+<section>
+  <article class="pinned-posts">
+    <h1>Pinned posts</h1>
+    <cc-include src="posts-list.html" postslist="collections.pinned | reverse | head(-5)" showExcerpt="false"></cc-include>
+  </article>
+</section>
+
+<section>
+  <article>
+    <h1>Latest 5 posts</h1>
+    <cc-include src="posts-list.html" postslist="collections.post | head(-5)" showExcerpt="true"></cc-include>
+    <hr>
+    <p class="center smaller">More posts can be found in ☞ <a href="{{ '/posts/' | url }}">The Archive</a> ☜</p>
+  </article>
+</section>

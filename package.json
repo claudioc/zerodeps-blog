@@ -1,0 +1,21 @@
+{
+  "name": "zerodeps-blog",
+  "version": "1.0.0",
+  "description": "A zero-dependency static blog starter kit powered by a single Node.js script",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "node build.mjs --serve",
+    "start": "node build.mjs --serve"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["static-site-generator", "blog", "starter", "zero-dependencies"],
+  "author": "Claudio Cicali",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/claudioc/zerodeps-blog.git"
+  }
+}
