@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="{{ language or 'en'}}">
-<cc-include src="head.html"></cc-include>
+<zd-include src="head.html"></zd-include>
 
 <body>
   <a class="skip-to-content" href="#main">Skip to main content</a>
@@ -18,10 +18,10 @@
       </h1>
       <nav role="navigation">
         <ul>
-          <cc-for each="entry in metadata.navigation">
+          <zd-for each="entry in metadata.navigation">
             <li class="nav-item{{ entry.url == page.url ? ' nav-item-active' : '' }}"><a
                 href="{{ entry.url | url }}">{{ entry.title }}</a></li>
-          </cc-for>
+          </zd-for>
         </ul>
       </nav>
     </header>
@@ -33,18 +33,18 @@
     <footer role="contentinfo">
       <p>
         All content © {{ thisYear }} by <a href="{{ '/about/' | url }}">{{ metadata.author.name }}</a>
-        <cc-if cond="metadata.license">
+        <zd-if cond="metadata.license">
           and licensed under <a href="{{ metadata.license.url }}" rel="license noopener noreferrer">{{ metadata.license.name }}</a>
-        </cc-if>
+        </zd-if>
       </p>
-      <cc-if cond="metadata.social.length">
+      <zd-if cond="metadata.social.length">
         <p>
           Follow me on
-          <cc-for each="item in metadata.social">
+          <zd-for each="item in metadata.social">
             <a rel="me" href="{{ item.url }}">{{ item.name }}</a>
-          </cc-for>
+          </zd-for>
         </p>
-      </cc-if>
+      </zd-if>
     </footer>
   </div>
 </body>

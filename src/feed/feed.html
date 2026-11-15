@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>{{ metadata.title }}</title>
 	<subtitle>{{ metadata.feed.subtitle }}</subtitle>
-	<cc-set var="absoluteUrl" value="metadata.feed.path | url | absoluteUrl(metadata.url)"></cc-set>
+	<zd-set var="absoluteUrl" value="metadata.feed.path | url | absoluteUrl(metadata.url)"></zd-set>
 	<link href="{{ absoluteUrl }}" rel="self"/>
 	<link href="{{ metadata.url }}"/>
 	<updated>{{ collections.posts | rssLastUpdatedDate }}</updated>
@@ -11,8 +11,8 @@
 		<name>{{ metadata.author.name }}</name>
 		<email>{{ metadata.author.email }}</email>
 	</author>
-	<cc-for each="post in collections.post | reverse">
-	<cc-set var="absolutePostUrl" value="post.url | url | absoluteUrl(metadata.url)"></cc-set>
+	<zd-for each="post in collections.post | reverse">
+	<zd-set var="absolutePostUrl" value="post.url | url | absoluteUrl(metadata.url)"></zd-set>
 	<entry>
 		<title>{{ post.data.title }}</title>
 		<link href="{{ absolutePostUrl }}"/>
@@ -20,5 +20,5 @@
 		<id>{{ absolutePostUrl }}</id>
 		<content type="html">{{ post.templateContent | htmlToAbsoluteUrls(absolutePostUrl) }}</content>
 	</entry>
-	</cc-for>
+	</zd-for>
 </feed>

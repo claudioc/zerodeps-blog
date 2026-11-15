@@ -4,16 +4,17 @@
   "description": "A zero-dependency static blog starter kit powered by a single Node.js script",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs",
-    "serve": "node build.mjs --serve",
-    "start": "node build.mjs --serve"
+    "build": "mkdir -p _site && node --permission --allow-fs-read=./ --allow-fs-write=./_site/ build.mjs",
+    "serve": "mkdir -p _site && node --permission --allow-fs-read=./ --allow-fs-write=./_site/ build.mjs --serve",
+    "start": "npm run serve",
+    "build:unsafe": "node build.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   },
   "keywords": ["static-site-generator", "blog", "starter", "zero-dependencies"],
-  "author": "Claudio Cicali",
-  "license": "MIT",
+  "author": "Claudio Cicali <claudio.cicali@gmail.com>",
+  "license": "MIT-0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/claudioc/zerodeps-blog.git"

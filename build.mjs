@@ -70,13 +70,15 @@ const RE_SCHEME_PREFIX = /^(https?:|mailto:|tel:|data:)/i;
 
 // Micro-Template Engine
 const RE_TAG_ATTRS = /([a-zA-Z0-9_-]+)\s*=\s*"([^"]*)"/g;
-const RE_CC_INCLUDE = /<cc-include\s+([^>]*?)(?:\/>|><\/cc-include>)/g;
+// Attribute values are double-quoted and may contain `>` (e.g. cond="count > 0"):
+// `(?:"[^"]*"|[^>"])*` skips over quoted strings when looking for the end of a tag.
+const RE_ZD_INCLUDE = /<zd-include\s+((?:"[^"]*"|[^>"])*?)\s*(?:\/>|><\/zd-include>)/g;
 const RE_LOGICAL_OPS = /('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")|\b(or|and|not)\b/g;
 const RE_PIPE_SPLIT = /(?<!\|)\|(?!\|)/;
 const RE_FILTER_CALL = /^([a-zA-Z0-9_]+)(?:\((.*)\))?$/;
-const RE_CC_BLOCK_LINE = /^[ \t]*(<\/?cc-(?:if|for|set)\b[^>]*>)[ \t]*\r?\n/gm;
-const RE_TEMPLATE_TOKENS = /(\{\{[\s\S]*?\}\}|<\/?cc-(?:if|for|set)\b[^>]*>)/g;
-const RE_CC_FOR_EACH = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s+in\s+([\s\S]+)$/;
+const RE_ZD_BLOCK_LINE = /^[ \t]*(<\/?zd-(?:if|for|set)\b(?:"[^"]*"|[^>"])*>)[ \t]*\r?\n/gm;
+const RE_TEMPLATE_TOKENS = /(\{\{[\s\S]*?\}\}|<\/?zd-(?:if|for|set)\b(?:"[^"]*"|[^>"])*>)/g;
+const RE_ZD_FOR_EACH = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s+in\s+([\s\S]+)$/;
 
 // Syntax Highlighter
 const RE_TRAILING_NEWLINE = /\n$/;
@@ -207,16 +209,16 @@ function parseTagAttributes(attrStr) {
 }
 
 function expandIncludes(templateStr) {
-  return templateStr.replace(RE_CC_INCLUDE, (_, attrStr) => {
+  return templateStr.replace(RE_ZD_INCLUDE, (_, attrStr) => {
     const attrs = parseTagAttributes(attrStr);
     if (!attrs.src) {
-      throw new Error('<cc-include> is missing required "src" attribute');
+      throw new Error('<zd-include> is missing required "src" attribute');
     }
     const incPath = resolveIncludePath(attrs.src);
     let prefixSets = '';
     for (const [key, val] of Object.entries(attrs)) {
       if (key === 'src') continue;
-      prefixSets += `<cc-set var="${key}" value="${val}"></cc-set>`;
+      prefixSets += `<zd-set var="${key}" value="${val}"></zd-set>`;
     }
     const body = fs.readFileSync(incPath, 'utf8');
     return prefixSets + expandIncludes(body);
@@ -267,13 +269,13 @@ const templateCache = new Map();
 export function renderTemplateString(rawTemplate, context) {
   let fn = templateCache.get(rawTemplate);
   if (!fn) {
-    // 1. Expand <cc-include src="..." ...></cc-include>
+    // 1. Expand <zd-include src="..." ...></zd-include>
     let src = expandIncludes(rawTemplate);
 
-    // 2. Strip standalone whitespace around block-level <cc-*> tags
-    src = src.replace(RE_CC_BLOCK_LINE, '$1');
+    // 2. Strip standalone whitespace around block-level <zd-*> tags
+    src = src.replace(RE_ZD_BLOCK_LINE, '$1');
 
-    // 3. Tokenize `{{ ... }}` and `<cc-...>` / `</cc-...>`
+    // 3. Tokenize `{{ ... }}` and `<zd-...>` / `</zd-...>`
     let code = 'let __out = "";\nwith (__scope) {\n';
     let lastIdx = 0;
     let ifDepth = 0;
@@ -290,43 +292,43 @@ export function renderTemplateString(rawTemplate, context) {
         code += isSafe
           ? `__out += String((${jsExpr}) ?? "");\n`
           : `__out += __escape((${jsExpr}) ?? "");\n`;
-      } else if (tok.startsWith('<cc-set')) {
+      } else if (tok.startsWith('<zd-set')) {
         const attrs = parseTagAttributes(tok);
         if (attrs.var && attrs.value !== undefined) {
           const { jsExpr } = compileExpression(attrs.value.trim());
           code += `var ${attrs.var} = (${jsExpr});\n`;
         }
-      } else if (tok === '</cc-set>') {
-        // no-op closing tag for <cc-set>
-      } else if (tok.startsWith('<cc-if')) {
+      } else if (tok === '</zd-set>') {
+        // no-op closing tag for <zd-set>
+      } else if (tok.startsWith('<zd-if')) {
         if (ifDepth > 0) {
-          throw new Error('Nested <cc-if> statements are not supported');
+          throw new Error('Nested <zd-if> statements are not supported');
         }
         ifDepth++;
         const attrs = parseTagAttributes(tok);
         const { jsExpr } = compileExpression((attrs.cond || '').trim());
         code += `if (${jsExpr}) {\n`;
-      } else if (tok === '</cc-if>') {
+      } else if (tok === '</zd-if>') {
         if (ifDepth === 0) {
-          throw new Error('Unexpected </cc-if> without matching <cc-if>');
+          throw new Error('Unexpected </zd-if> without matching <zd-if>');
         }
         ifDepth--;
         code += '}\n';
-      } else if (tok.startsWith('<cc-for')) {
+      } else if (tok.startsWith('<zd-for')) {
         if (forDepth > 0) {
-          throw new Error('Nested <cc-for> statements are not supported');
+          throw new Error('Nested <zd-for> statements are not supported');
         }
         forDepth++;
         const attrs = parseTagAttributes(tok);
-        const forMatch = (attrs.each || '').match(RE_CC_FOR_EACH);
+        const forMatch = (attrs.each || '').match(RE_ZD_FOR_EACH);
         if (!forMatch) {
-          throw new Error(`Invalid <cc-for each="${attrs.each || ''}"> syntax`);
+          throw new Error(`Invalid <zd-for each="${attrs.each || ''}"> syntax`);
         }
         const { jsExpr } = compileExpression(forMatch[2].trim());
         code += `for (const ${forMatch[1]} of ((${jsExpr}) || [])) {\n`;
-      } else if (tok === '</cc-for>') {
+      } else if (tok === '</zd-for>') {
         if (forDepth === 0) {
-          throw new Error('Unexpected </cc-for> without matching <cc-for>');
+          throw new Error('Unexpected </zd-for> without matching <zd-for>');
         }
         forDepth--;
         code += '}\n';
@@ -335,7 +337,7 @@ export function renderTemplateString(rawTemplate, context) {
     }
 
     if (ifDepth !== 0 || forDepth !== 0) {
-      throw new Error('Unclosed <cc-if> or <cc-for> tag in template');
+      throw new Error('Unclosed <zd-if> or <zd-for> tag in template');
     }
 
     const tail = src.slice(lastIdx);

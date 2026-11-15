@@ -1,15 +1,15 @@
 <ul reversed class="posts-list">
-  <cc-for each="post in postslist | reverse">
+  <zd-for each="post in postslist | reverse">
     <li class="postlist-item">
       <article>
         <h2><a href="{{ post.url | url }}">{{ post.data.title }}</a></h2>
-        <cc-if cond="post.data.excerpt and showExcerpt">
+        <zd-if cond="post.data.excerpt and showExcerpt">
           <p class="excerpt">
             <time>{{ post.date | niceShortDate }}</time> –
             {{ post.data.excerpt | toHTML | safe }}
           </p>
-        </cc-if>
+        </zd-if>
       </article>
     </li>
-  </cc-for>
+  </zd-for>
 </ul>

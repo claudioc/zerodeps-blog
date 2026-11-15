@@ -11,14 +11,14 @@
 <section>
   <article class="pinned-posts">
     <h1>Pinned posts</h1>
-    <cc-include src="posts-list.html" postslist="collections.pinned | reverse | head(-5)" showExcerpt="false"></cc-include>
+    <zd-include src="posts-list.html" postslist="collections.pinned | reverse | head(-5)" showExcerpt="false"></zd-include>
   </article>
 </section>
 
 <section>
   <article>
     <h1>Latest 5 posts</h1>
-    <cc-include src="posts-list.html" postslist="collections.post | head(-5)" showExcerpt="true"></cc-include>
+    <zd-include src="posts-list.html" postslist="collections.post | head(-5)" showExcerpt="true"></zd-include>
     <hr>
     <p class="center smaller">More posts can be found in ☞ <a href="{{ '/posts/' | url }}">The Archive</a> ☜</p>
   </article>

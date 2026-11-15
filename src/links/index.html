@@ -19,12 +19,12 @@
         Read my blog
       </a>
     </li>
-    <cc-for each="item in metadata.social">
+    <zd-for each="item in metadata.social">
       <li>
         <a aria-label="{{ metadata.author.name }} on {{ item.name }}" href="{{ item.url }}">
           {{ item.label or item.name }}
         </a>
       </li>
-    </cc-for>
+    </zd-for>
   </ul>
 </section>
