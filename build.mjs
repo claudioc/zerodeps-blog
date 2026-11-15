@@ -218,7 +218,7 @@ function expandIncludes(templateStr) {
     let prefixSets = '';
     for (const [key, val] of Object.entries(attrs)) {
       if (key === 'src') continue;
-      prefixSets += `<zd-set var="${key}" value="${val}"></zd-set>`;
+      prefixSets += `<zd-set var="${key}" value="${val}" />`;
     }
     const body = fs.readFileSync(incPath, 'utf8');
     return prefixSets + expandIncludes(body);

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="{{ language or 'en'}}">
-<zd-include src="head.html"></zd-include>
+<zd-include src="head.html" />
 
 <body>
   <a class="skip-to-content" href="#main">Skip to main content</a>
@@ -19,8 +19,8 @@
       <nav role="navigation">
         <ul>
           <zd-for each="entry in metadata.navigation">
-            <li class="nav-item{{ entry.url == page.url ? ' nav-item-active' : '' }}"><a
-                href="{{ entry.url | url }}">{{ entry.title }}</a></li>
+            <li class="nav-item{{ entry.url == page.url ? ' nav-item-active' : '' }}"><a href="{{ entry.url | url }}">{{
+                entry.title }}</a></li>
           </zd-for>
         </ul>
       </nav>
@@ -34,7 +34,8 @@
       <p>
         All content © {{ thisYear }} by <a href="{{ '/about/' | url }}">{{ metadata.author.name }}</a>
         <zd-if cond="metadata.license">
-          and licensed under <a href="{{ metadata.license.url }}" rel="license noopener noreferrer">{{ metadata.license.name }}</a>
+          and licensed under <a href="{{ metadata.license.url }}" rel="license noopener noreferrer">{{
+            metadata.license.name }}</a>
         </zd-if>
       </p>
       <zd-if cond="metadata.social.length">

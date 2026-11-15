@@ -2,9 +2,9 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 	<title>{{ metadata.title }}</title>
 	<subtitle>{{ metadata.feed.subtitle }}</subtitle>
-	<zd-set var="absoluteUrl" value="metadata.feed.path | url | absoluteUrl(metadata.url)"></zd-set>
-	<link href="{{ absoluteUrl }}" rel="self"/>
-	<link href="{{ metadata.url }}"/>
+	<zd-set var="absoluteUrl" value="metadata.feed.path | url | absoluteUrl(metadata.url)" />
+	<link href="{{ absoluteUrl }}" rel="self" />
+	<link href="{{ metadata.url }}" />
 	<updated>{{ collections.posts | rssLastUpdatedDate }}</updated>
 	<id>{{ metadata.feed.id }}</id>
 	<author>
@@ -12,13 +12,13 @@
 		<email>{{ metadata.author.email }}</email>
 	</author>
 	<zd-for each="post in collections.post | reverse">
-	<zd-set var="absolutePostUrl" value="post.url | url | absoluteUrl(metadata.url)"></zd-set>
-	<entry>
-		<title>{{ post.data.title }}</title>
-		<link href="{{ absolutePostUrl }}"/>
-		<updated>{{ post.date | rssDate }}</updated>
-		<id>{{ absolutePostUrl }}</id>
-		<content type="html">{{ post.templateContent | htmlToAbsoluteUrls(absolutePostUrl) }}</content>
-	</entry>
+		<zd-set var="absolutePostUrl" value="post.url | url | absoluteUrl(metadata.url)" />
+		<entry>
+			<title>{{ post.data.title }}</title>
+			<link href="{{ absolutePostUrl }}" />
+			<updated>{{ post.date | rssDate }}</updated>
+			<id>{{ absolutePostUrl }}</id>
+			<content type="html">{{ post.templateContent | htmlToAbsoluteUrls(absolutePostUrl) }}</content>
+		</entry>
 	</zd-for>
 </feed>
