@@ -66,8 +66,10 @@ See **[INSTRUCTIONS.md](INSTRUCTIONS.md)** for:
 - [Customizing your site](INSTRUCTIONS.md#customize)
 - [Writing posts](INSTRUCTIONS.md#writing-posts)
 - [Templates & `<zd-*>` tags](INSTRUCTIONS.md#templates)
+- [Styling, design & Tailwind](INSTRUCTIONS.md#styling--design)
 - [Project layout](INSTRUCTIONS.md#project-layout)
 - [Deployment & Nginx example](INSTRUCTIONS.md#deployment)
+- [Engine rules & gotchas (for humans and AI agents)](INSTRUCTIONS.md#engine-rules--gotchas-for-humans-and-ai-agents)
 
 ## Security
 

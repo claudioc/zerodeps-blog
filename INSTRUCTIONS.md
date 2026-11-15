@@ -46,6 +46,31 @@ Four custom tags handle control flow and partials (attribute values must be doub
 - **`<zd-if cond="expr">...</zd-if>`** — conditional block (`and`, `or`, `not` are supported; nesting `<zd-if>` inside `<zd-if>` is not).
 - **`<zd-for each="item in list">...</zd-for>`** — loops over an array (nesting `<zd-for>` inside `<zd-for>` is not supported).
 
+## Styling & Design
+
+The default style (`src/css/main.css`, plus `src/css/links.css` as an example of a page-specific stylesheet passed via `<zd-include src="head.html" styles="'links.css'" />`) is intentionally minimal.
+
+### Semantic HTML over classes
+
+Instead of sprinkling classes on every element, the stylesheet targets the **HTML structure** (`#root > header`, `nav`, `main > section`, `article`, `footer`). Only a few functional classes are used across the templates:
+
+- `.skip-to-content` — accessibility skip link
+- `.nav-item-active` — active link in the top navigation
+- `.posts-list`, `.pinned-posts`, `.excerpt`, `.archive` — post lists and home sections
+- `.post-page`, `.about-page` — article layout hooks
+- `.token.*` — syntax highlighting spans emitted by `build.mjs`
+
+For quick customization, change the CSS custom properties at the top of `src/css/main.css` (`:root` and `@media (prefers-color-scheme: dark)`): palette, `--font-sans`, `--font-mono`, and `--max-width`.
+
+### Throwing the CSS away and using Tailwind
+
+If you'd rather scrap `src/css/main.css` and use Tailwind CSS (fair enough), you don't need to change `build.mjs`:
+
+1. **Without `node_modules` (Tailwind Standalone CLI):** grab the single [Tailwind standalone executable](https://tailwindcss.com/blog/standalone-cli), replace `src/css/main.css` with `@import "tailwindcss";` (Tailwind v4), and let the CLI write the compiled CSS into `_site/css/main.css` (or into `src/css/main.css` so `build.mjs` copies it over).
+2. **With npm (`@tailwindcss/cli`):** run `npm i -D @tailwindcss/cli`, put `@import "tailwindcss";` in `src/css/input.css`, and compile it to `src/css/main.css` (`npx @tailwindcss/cli -i src/css/input.css -o src/css/main.css --watch`).
+
+Because Tailwind scans your `src/**/*.html` and `src/**/*.md` files directly, utility classes added to `src/_includes/*.html`—or attached to Markdown elements via the built-in `{.my-class}` attribute syntax—will be picked up automatically. Note that Markdown content inside `{{ content | safe }}` is rendered as bare `<p>`, `<h2>`, `<ul>`, `<pre>` tags, so you'll either want `@tailwindcss/typography` (`class="prose"` on `<article>`) or a handful of base element rules.
+
 ## Project layout
 
 ```
@@ -53,7 +78,7 @@ build.mjs            the whole generator + dev server
 site.config.json     your site settings
 src/_includes/       layouts and partials
 src/posts/           blog posts (Markdown)
-src/css, src/assets  styles, fonts, icons
+src/css, src/assets  styles, icons
 ```
 
 ## Deployment
@@ -137,3 +162,18 @@ Replace `example.com` and the paths with your own. If you add external scripts o
 - **Markdown can contain raw HTML.** Inline `<script>`, `<iframe>` or `on*=` handlers in a post end up verbatim in the output. Don't publish content from others without sanitizing it.
 - **`| safe` disables escaping.** Use it only for HTML that you generated yourself (e.g. rendered post content), never for user-supplied data.
 - **Keep third-party scripts to a minimum.** Prefer self-hosted assets and set a `Content-Security-Policy` header on your web server.
+
+## Engine rules & gotchas (for humans and AI agents)
+
+Because `build.mjs` is a lightweight, regex-driven single-file generator rather than a full SSG framework, keep these constraints in mind when modifying templates, content, or the build script:
+
+1. **No front matter in `.html` files:** Only `.md` files are parsed for YAML front matter. Adding `---` blocks to `.html` files will render them literally as text. Layouts for `.html` pages are assigned in `buildSite()` inside `build.mjs`.
+2. **Single-line YAML front matter only:** The front matter parser reads single-line `key: value` pairs. Write arrays inline (`tags: ['post', 'pinned']`), never as multi-line `- item` lists.
+3. **Three `---` delimiters define an excerpt:** In `.md` files, if a third `---` line is present, the block between the second and third `---` is extracted as `data.excerpt` (and also kept as the first paragraph of the body). Use `***` instead of `---` if you want a horizontal rule (`<hr>`) inside a post.
+4. **`<zd-*>` template compiler limits:**
+   - **No `<zd-else>` tag:** use two complementary `<zd-if>` blocks or a ternary inside `{{ cond ? 'a' : 'b' }}`.
+   - **No nesting of `<zd-if>` or `<zd-for>`:** nesting `<zd-if>` inside `<zd-if>` (or `<zd-for>` inside `<zd-for>`) throws a build-time error. Combine conditions with `and` / `or`, or extract the inner block into a `<zd-include>` partial.
+   - **Quoting:** attribute values must use double quotes (`cond="..."`), so string literals inside expressions must use single quotes (`styles="'links.css'"`).
+5. **Static passthrough whitelist & Node permission sandbox:**
+   - Only directories listed in `PASSTHROUGH_DIRS` in `build.mjs` (`assets`, `img`, `fonts`, `css`, plus `src/.htaccess`) are copied verbatim to `_site/`. Add any new static folder (e.g. `js`) to `PASSTHROUGH_DIRS`.
+   - `npm run build` and `npm run serve` run under `node --permission --allow-fs-read=./ --allow-fs-write=./_site/`. The `_site/` directory must exist before Node starts (`mkdir -p _site`), and `build.mjs` cannot write outside `_site/` or spawn child processes.

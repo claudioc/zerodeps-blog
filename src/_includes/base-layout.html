@@ -12,15 +12,17 @@
             src="{{ metadata.author.avatar }}">
           <span>
             <span class="my-name">{{ metadata.title }}</span>
-            <span>{{ metadata.subtitle }}<span>
-              </span>
+            <span>{{ metadata.subtitle }}</span>
+          </span>
         </a>
       </h1>
       <nav role="navigation">
         <ul>
           <zd-for each="entry in metadata.navigation">
-            <li class="nav-item{{ entry.url == page.url ? ' nav-item-active' : '' }}"><a href="{{ entry.url | url }}">{{
-                entry.title }}</a></li>
+            <li>
+              <zd-if cond="entry.url == page.url"><a class="nav-item-active" href="{{ entry.url | url }}">{{ entry.title }}</a></zd-if>
+              <zd-if cond="entry.url != page.url"><a href="{{ entry.url | url }}">{{ entry.title }}</a></zd-if>
+            </li>
           </zd-for>
         </ul>
       </nav>
@@ -49,10 +51,5 @@
     </footer>
   </div>
 </body>
-<script>
-  window.onload = function () {
-    document.documentElement.classList.remove('loading');
-  }
-</script>
 
 </html>

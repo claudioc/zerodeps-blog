@@ -15,6 +15,6 @@ Write something about yourself here. This page lives in `src/about/index.md`.
 
 What do you do? What are you passionate about?
 
-## Contacts{id=contacts}
+## Contacts
 
 Your social links are configured in `site.config.json` and shown in the footer and on the [links page](/links/).

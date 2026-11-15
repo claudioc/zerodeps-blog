@@ -1,8 +1,8 @@
-<article class="{{className}}" role="article">
+<article class="{{ className or 'post-page' }}" role="article">
   <header>
     <h1>{{ title }}</h1>
     <zd-if cond="showDate">
-      <time class="post-date" datetime="{{ page.date | niceDate }}">{{ page.date | niceShortDate }}</time>
+      <time datetime="{{ page.date | niceDate }}">{{ page.date | niceShortDate }}</time>
     </zd-if>
   </header>
   {{ content | safe }}

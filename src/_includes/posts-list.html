@@ -1,6 +1,6 @@
 <ul reversed class="posts-list">
   <zd-for each="post in postslist | reverse">
-    <li class="postlist-item">
+    <li>
       <article>
         <h2><a href="{{ post.url | url }}">{{ post.data.title }}</a></h2>
         <zd-if cond="post.data.excerpt and showExcerpt">
