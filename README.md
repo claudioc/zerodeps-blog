@@ -42,7 +42,7 @@ npm run serve                              # http://localhost:8080
 
 ## Make it your own
 
-Run `npm run eject` (or `node eject.mjs --dry-run` first to preview) to automate this: it asks for your site details, updates `site.config.json` and `package.json`, replaces `README.md` with a minimal one for your site, optionally removes the sample posts and `.git`, and deletes itself.
+Run `npm run eject` (or `node eject.mjs --dry-run` first to preview) to automate this: it asks for your site details, updates `site.config.json` and `package.json`, replaces `README.md` with a minimal one for your site, removes starter-only files (`LICENSE`, `test.mjs`, and `eject.mjs` itself), and optionally removes the sample posts and `.git`. Note that `eject` can only be run once—if you want to hack on the engine itself and keep the test suite, clone the repo and skip ejecting.
 
 If you prefer doing it by hand, remove what belongs to the starter itself rather than to your website:
 

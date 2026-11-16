@@ -41,8 +41,7 @@ function loadMetadata() {
   };
 }
 
-const METADATA = loadMetadata();
-const BASE_URL = METADATA.url;
+let METADATA = loadMetadata();
 
 // Default frontmatter values automatically applied to every Markdown file in `src/posts/`
 const POST_DEFAULTS = {
@@ -172,14 +171,14 @@ const FILTERS = {
     const latest = posts.reduce((max, p) => (p.date > max ? p.date : max), posts[0].date);
     return latest.toISOString().replace(RE_ISO_MS, 'Z');
   },
-  absoluteUrl: (urlPath, base = BASE_URL) => {
+  absoluteUrl: (urlPath, base = METADATA.url) => {
     if (!urlPath) return base;
     if (RE_HTTP_PREFIX.test(urlPath)) return urlPath;
     const cleanBase = String(base).replace(RE_TRAILING_SLASHES, '');
     const cleanPath = String(urlPath).startsWith('/') ? urlPath : `/${urlPath}`;
     return `${cleanBase}${cleanPath}`;
   },
-  htmlToAbsoluteUrls: (html = '', basePostUrl = BASE_URL) => {
+  htmlToAbsoluteUrls: (html = '', basePostUrl = METADATA.url) => {
     const origin = new URL(basePostUrl).origin;
     return String(html).replace(RE_HTML_HREF_SRC, (match, attr, val) => {
       if (RE_SCHEME_PREFIX.test(val)) return match;
@@ -208,7 +207,32 @@ function parseTagAttributes(attrStr) {
   return attrs;
 }
 
+function assertFlatControlFlow(src) {
+  let ifDepth = 0;
+  let forDepth = 0;
+  for (const m of src.matchAll(RE_TEMPLATE_TOKENS)) {
+    const tok = m[0];
+    if (tok.startsWith('<zd-if')) {
+      if (ifDepth > 0) throw new Error('Nested <zd-if> statements are not supported');
+      ifDepth++;
+    } else if (tok === '</zd-if>') {
+      if (ifDepth === 0) throw new Error('Unexpected </zd-if> without matching <zd-if>');
+      ifDepth--;
+    } else if (tok.startsWith('<zd-for')) {
+      if (forDepth > 0) throw new Error('Nested <zd-for> statements are not supported');
+      forDepth++;
+    } else if (tok === '</zd-for>') {
+      if (forDepth === 0) throw new Error('Unexpected </zd-for> without matching <zd-for>');
+      forDepth--;
+    }
+  }
+  if (ifDepth !== 0 || forDepth !== 0) {
+    throw new Error('Unclosed <zd-if> or <zd-for> tag in template');
+  }
+}
+
 function expandIncludes(templateStr) {
+  assertFlatControlFlow(templateStr);
   return templateStr.replace(RE_ZD_INCLUDE, (_, attrStr) => {
     const attrs = parseTagAttributes(attrStr);
     if (!attrs.src) {
@@ -301,23 +325,14 @@ export function renderTemplateString(rawTemplate, context) {
       } else if (tok === '</zd-set>') {
         // no-op closing tag for <zd-set>
       } else if (tok.startsWith('<zd-if')) {
-        if (ifDepth > 0) {
-          throw new Error('Nested <zd-if> statements are not supported');
-        }
         ifDepth++;
         const attrs = parseTagAttributes(tok);
         const { jsExpr } = compileExpression((attrs.cond || '').trim());
         code += `if (${jsExpr}) {\n`;
       } else if (tok === '</zd-if>') {
-        if (ifDepth === 0) {
-          throw new Error('Unexpected </zd-if> without matching <zd-if>');
-        }
         ifDepth--;
         code += '}\n';
       } else if (tok.startsWith('<zd-for')) {
-        if (forDepth > 0) {
-          throw new Error('Nested <zd-for> statements are not supported');
-        }
         forDepth++;
         const attrs = parseTagAttributes(tok);
         const forMatch = (attrs.each || '').match(RE_ZD_FOR_EACH);
@@ -327,9 +342,6 @@ export function renderTemplateString(rawTemplate, context) {
         const { jsExpr } = compileExpression(forMatch[2].trim());
         code += `for (const ${forMatch[1]} of ((${jsExpr}) || [])) {\n`;
       } else if (tok === '</zd-for>') {
-        if (forDepth === 0) {
-          throw new Error('Unexpected </zd-for> without matching <zd-for>');
-        }
         forDepth--;
         code += '}\n';
       }
@@ -747,7 +759,7 @@ function parseList(lines, startIndex, baseIndent) {
 // 5. Frontmatter & Excerpt Parser
 // ---------------------------------------------------------------------------
 
-function parseFrontMatterFile(filePath, defaults = {}) {
+export function parseFrontMatterFile(filePath, defaults = {}) {
   const raw = fs.readFileSync(filePath, 'utf8').replace(RE_CRLF, '\n');
   const stat = fs.statSync(filePath);
 
@@ -781,7 +793,7 @@ function parseFrontMatterFile(filePath, defaults = {}) {
   return { data, excerpt, body, date };
 }
 
-function parseSimpleYaml(yamlStr) {
+export function parseSimpleYaml(yamlStr) {
   const result = {};
   const lines = yamlStr.split('\n');
   let currentObjKey = null;
@@ -906,10 +918,11 @@ function copyDirRecursive(src, dest) {
   }
 }
 
-export function buildSite() {
+export function buildSite({ includeDrafts = false } = {}) {
   const startTime = performance.now();
   templateCache.clear();
 
+  METADATA = loadMetadata();
   const metadata = METADATA;
   const postDefaults = POST_DEFAULTS;
 
@@ -920,49 +933,54 @@ export function buildSite() {
   if (fs.existsSync(path.join(SRC_DIR, '.htaccess'))) {
     fs.copyFileSync(path.join(SRC_DIR, '.htaccess'), path.join(OUT_DIR, '.htaccess'));
   }
+  if (fs.existsSync(path.join(__dirname, 'robots.txt'))) {
+    fs.copyFileSync(path.join(__dirname, 'robots.txt'), path.join(OUT_DIR, 'robots.txt'));
+  }
 
   // 2. Discover and parse all pages/posts in src/
   const files = discoverContentFiles(SRC_DIR);
-  const pages = files.map((filePath) => {
-    const isMarkdown = filePath.endsWith('.md');
-    const isPost = filePath.startsWith(path.join(SRC_DIR, 'posts') + path.sep);
-    const rel = path.relative(SRC_DIR, filePath).replace(RE_BACKSLASH, '/');
+  const pages = files
+    .map((filePath) => {
+      const isMarkdown = filePath.endsWith('.md');
+      const isPost = filePath.startsWith(path.join(SRC_DIR, 'posts') + path.sep);
+      const rel = path.relative(SRC_DIR, filePath).replace(RE_BACKSLASH, '/');
 
-    let data = {};
-    let rawBody = '';
-    let date;
+      let data = {};
+      let rawBody = '';
+      let date;
 
-    if (isMarkdown) {
-      const parsed = parseFrontMatterFile(filePath, isPost ? postDefaults : {});
-      data = parsed.data;
-      rawBody = parsed.body;
-      date = parsed.date;
-    } else {
-      rawBody = fs.readFileSync(filePath, 'utf8').replace(RE_CRLF, '\n');
-      const stat = fs.statSync(filePath);
-      date = stat.birthtime || stat.mtime;
-      if (rel === 'sitemap.xml.html' || rel === 'feed/feed.html') {
-        data = { excludeFromCollections: true };
-      } else if (rel === 'links/index.html') {
-        data = { layout: 'links-layout.html' };
+      if (isMarkdown) {
+        const parsed = parseFrontMatterFile(filePath, isPost ? postDefaults : {});
+        data = parsed.data;
+        rawBody = parsed.body;
+        date = parsed.date;
       } else {
-        data = { layout: 'base-layout.html' };
+        rawBody = fs.readFileSync(filePath, 'utf8').replace(RE_CRLF, '\n');
+        const stat = fs.statSync(filePath);
+        date = stat.birthtime || stat.mtime;
+        if (rel === 'sitemap.xml.html' || rel === 'feed/feed.html') {
+          data = { excludeFromCollections: true };
+        } else if (rel === 'links/index.html') {
+          data = { layout: 'links-layout.html' };
+        } else {
+          data = { layout: 'base-layout.html' };
+        }
       }
-    }
 
-    const { url, outRel } = computeUrls(filePath, data.permalink, metadata);
+      const { url, outRel } = computeUrls(filePath, data.permalink, metadata);
 
-    return {
-      filePath,
-      isMarkdown,
-      url,
-      outRel,
-      date,
-      data,
-      rawBody,
-      templateContent: '',
-    };
-  });
+      return {
+        filePath,
+        isMarkdown,
+        url,
+        outRel,
+        date,
+        data,
+        rawBody,
+        templateContent: '',
+      };
+    })
+    .filter((p) => includeDrafts || !p.data.draft);
 
   // Sort chronologically
   pages.sort((a, b) => a.date - b.date);
@@ -1023,21 +1041,24 @@ const MIME_TYPES = {
 };
 
 function startDevServer(port = 8080) {
-  buildSite();
+  buildSite({ includeDrafts: true });
 
   let debounceTimer = null;
-  fs.watch(SRC_DIR, { recursive: true }, (_event, filename) => {
+  const triggerRebuild = (_event, filename) => {
     if (filename && filename.endsWith('.DS_Store')) return;
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      console.log(`Change detected (${filename}), rebuilding...`);
+      console.log(`Change detected (${filename || 'config'}), rebuilding...`);
       try {
-        buildSite();
+        buildSite({ includeDrafts: true });
       } catch (err) {
         console.error('Build error:', err);
       }
     }, 80);
-  });
+  };
+
+  fs.watch(SRC_DIR, { recursive: true }, triggerRebuild);
+  fs.watch(CONFIG_FILE, triggerRebuild);
 
   const server = http.createServer((req, res) => {
     const reqUrl = new URL(req.url, `http://localhost:${port}`);

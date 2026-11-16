@@ -5,7 +5,7 @@
         <h2><a href="{{ post.url | url }}">{{ post.data.title }}</a></h2>
         <zd-if cond="post.data.excerpt and showExcerpt">
           <p class="excerpt">
-            <time>{{ post.date | niceShortDate }}</time> –
+            <time datetime="{{ post.date | w3cDate }}">{{ post.date | niceShortDate }}</time> –
             {{ post.data.excerpt | toHTML | safe }}
           </p>
         </zd-if>

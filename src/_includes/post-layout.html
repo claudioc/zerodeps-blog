@@ -2,7 +2,7 @@
   <header>
     <h1>{{ title }}</h1>
     <zd-if cond="showDate">
-      <time datetime="{{ page.date | niceDate }}">{{ page.date | niceShortDate }}</time>
+      <time datetime="{{ page.date | w3cDate }}">{{ page.date | niceShortDate }}</time>
     </zd-if>
   </header>
   {{ content | safe }}

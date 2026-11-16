@@ -4,8 +4,8 @@
 //
 // Asks a few questions, then:
 //   - writes your details into site.config.json
-//   - rewrites package.json (name, author, license, private, no repository)
-//   - deletes the starter's LICENSE and replaces README.md with a minimal one
+//   - rewrites package.json (name, author, license, private, no repository/test/eject)
+//   - deletes the starter's LICENSE and test.mjs, and replaces README.md with a minimal one
 //     (keeping INSTRUCTIONS.md for reference)
 //   - optionally removes the sample posts and the starter's Git history
 //   - deletes itself
@@ -69,8 +69,22 @@ function remove(rel) {
 // --- Main ----------------------------------------------------------------------
 
 async function main() {
-  console.log('\nzerodeps-blog eject: make this starter your own.');
-  console.log(DRY_RUN ? '(dry run: nothing will be changed)\n' : 'Press Enter to accept the default in brackets.\n');
+  console.log('\n┌──────────────────────────────────────────────────────────────────────┐');
+  console.log('│ zerodeps-blog eject: make this starter your own                      │');
+  console.log('├──────────────────────────────────────────────────────────────────────┤');
+  console.log('│ ⚠️  WARNING: You can run eject only ONCE.                             │');
+  console.log('│    This will overwrite site.config.json, package.json and README.md, │');
+  console.log('│    and permanently remove starter files including LICENSE, test.mjs  │');
+  console.log('│    (the engine unit tests) and eject.mjs itself.                     │');
+  console.log('│                                                                      │');
+  console.log('│    If you want to hack on the engine itself, press Ctrl+C now and    │');
+  console.log('│    work directly on a clone of the repository without ejecting.      │');
+  console.log('└──────────────────────────────────────────────────────────────────────┘');
+  console.log(
+    DRY_RUN
+      ? '\n(dry run: nothing will be changed)\n'
+      : '\nPress Enter to accept the default in brackets (or Ctrl+C to abort).\n',
+  );
 
   const config = readJson('site.config.json');
   const pkg = readJson('package.json');
@@ -107,6 +121,7 @@ async function main() {
   const { repository, keywords, author, license, ...rest } = pkg;
   const scripts = { ...rest.scripts };
   delete scripts.eject;
+  delete scripts.test;
   const newPkg = {
     ...rest,
     name,
@@ -119,8 +134,9 @@ async function main() {
   };
   writeFile('package.json', JSON.stringify(newPkg, null, 2) + '\n');
 
-  // LICENSE and README.md (INSTRUCTIONS.md stays untouched)
+  // LICENSE, test.mjs and README.md (INSTRUCTIONS.md stays untouched)
   remove('LICENSE');
+  remove('test.mjs');
   writeFile(
     'README.md',
     `# ${title}

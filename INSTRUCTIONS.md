@@ -20,6 +20,7 @@ title: 'My post'
 description: 'Short summary'
 date: 2026-01-01
 tags: ['post']        # add 'pinned' to show it on the home page
+draft: false          # set to true to hide from `npm run build` (still visible in `npm run serve`)
 ---
 First paragraph = excerpt.
 ---

@@ -8,12 +8,14 @@
   </article>
 </section>
 
-<section>
-  <article class="pinned-posts">
-    <h1>Pinned posts</h1>
-    <zd-include src="posts-list.html" postslist="collections.pinned | reverse | head(-5)" showExcerpt="false"></zd-include>
-  </article>
-</section>
+<zd-if cond="collections.pinned.length">
+  <section>
+    <article class="pinned-posts">
+      <h1>Pinned posts</h1>
+      <zd-include src="posts-list.html" postslist="collections.pinned | reverse | head(-5)" showExcerpt="false"></zd-include>
+    </article>
+  </section>
+</zd-if>
 
 <section>
   <article>
