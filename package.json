@@ -1,6 +1,6 @@
 {
   "name": "zerodeps-blog",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A zero-dependency static blog starter kit powered by a single Node.js script",
   "type": "module",
   "scripts": {

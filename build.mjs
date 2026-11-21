@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -42,6 +43,27 @@ function loadMetadata() {
 }
 
 let METADATA = loadMetadata();
+let ASSET_HASHES = new Map();
+
+function computeCssHashes() {
+  ASSET_HASHES.clear();
+  const cssDir = path.join(SRC_DIR, 'css');
+  if (!fs.existsSync(cssDir)) return;
+  const mainCssPath = path.join(cssDir, 'main.css');
+  const mainBuf = fs.existsSync(mainCssPath) ? fs.readFileSync(mainCssPath) : Buffer.alloc(0);
+
+  for (const entry of fs.readdirSync(cssDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.css')) continue;
+    const fileBuf = fs.readFileSync(path.join(cssDir, entry.name));
+    const hash = crypto
+      .createHash('sha256')
+      .update(fileBuf)
+      .update(entry.name === 'main.css' ? Buffer.alloc(0) : mainBuf)
+      .digest('hex')
+      .slice(0, 8);
+    ASSET_HASHES.set(`/css/${entry.name}`, hash);
+  }
+}
 
 // Default frontmatter values automatically applied to every Markdown file in `src/posts/`
 const POST_DEFAULTS = {
@@ -146,6 +168,11 @@ function escapeHtml(str = '') {
 
 const FILTERS = {
   url: (u) => u || '/',
+  cacheBust: (u) => {
+    const clean = u || '/';
+    const hash = ASSET_HASHES.get(clean);
+    return hash ? `${clean}?v=${hash}` : clean;
+  },
   escape: (s) => escapeHtml(s),
   reverse: (arr) => (Array.isArray(arr) ? [...arr].reverse() : []),
   head: (arr, n) => {
@@ -926,15 +953,24 @@ export function buildSite({ includeDrafts = false } = {}) {
   const metadata = METADATA;
   const postDefaults = POST_DEFAULTS;
 
-  // 1. Copy static passthrough assets
+  // 1. Copy static passthrough assets & compute CSS cache-busting hashes
+  computeCssHashes();
   for (const dir of PASSTHROUGH_DIRS) {
     copyDirRecursive(path.join(SRC_DIR, dir), path.join(OUT_DIR, dir));
+  }
+  const mainHash = ASSET_HASHES.get('/css/main.css');
+  const outLinksCss = path.join(OUT_DIR, 'css', 'links.css');
+  if (mainHash && fs.existsSync(outLinksCss)) {
+    const linksCss = fs
+      .readFileSync(outLinksCss, 'utf8')
+      .replace('@import url(main.css);', `@import url(main.css?v=${mainHash});`);
+    fs.writeFileSync(outLinksCss, linksCss, 'utf8');
   }
   if (fs.existsSync(path.join(SRC_DIR, '.htaccess'))) {
     fs.copyFileSync(path.join(SRC_DIR, '.htaccess'), path.join(OUT_DIR, '.htaccess'));
   }
-  if (fs.existsSync(path.join(__dirname, 'robots.txt'))) {
-    fs.copyFileSync(path.join(__dirname, 'robots.txt'), path.join(OUT_DIR, 'robots.txt'));
+  if (fs.existsSync(path.join(SRC_DIR, 'robots.txt'))) {
+    fs.copyFileSync(path.join(SRC_DIR, 'robots.txt'), path.join(OUT_DIR, 'robots.txt'));
   }
 
   // 2. Discover and parse all pages/posts in src/

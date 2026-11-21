@@ -110,4 +110,5 @@ test('buildSite generates expected output files including robots.txt and valid <
   const indexHtml = fs.readFileSync(path.join(OUT_DIR, 'index.html'), 'utf8');
   assert.match(indexHtml, /<html lang="en">/);
   assert.match(indexHtml, /<time datetime="\d{4}-\d{2}-\d{2}">/);
+  assert.match(indexHtml, /href="\/css\/main\.css\?v=[0-9a-f]{8}"/);
 });

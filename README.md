@@ -51,7 +51,7 @@ If you prefer doing it by hand, remove what belongs to the starter itself rather
 - [ ] **`README.md`**: replace this file with notes about *your* site (how to build and deploy it).
 - [ ] **Git history**: if you cloned the repository instead of using `degit` or "Use this template", start fresh with `rm -rf .git && git init`.
 - [ ] **Sample content**: remove the placeholder author "Jane Doe" and the `example.com` links from `site.config.json`, the sample posts in `src/posts/`, the about page text and the default avatar (see [INSTRUCTIONS.md](INSTRUCTIONS.md#customize)).
-- [ ] **`robots.txt`**: adjust it to your needs (it currently allows every crawler).
+- [ ] **`src/robots.txt`**: adjust it to your needs (it currently allows every crawler).
 
 A quick check that nothing was left behind:
 

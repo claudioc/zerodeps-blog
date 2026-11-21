@@ -176,5 +176,5 @@ Because `build.mjs` is a lightweight, regex-driven single-file generator rather 
    - **No nesting of `<zd-if>` or `<zd-for>`:** nesting `<zd-if>` inside `<zd-if>` (or `<zd-for>` inside `<zd-for>`) throws a build-time error. Combine conditions with `and` / `or`, or extract the inner block into a `<zd-include>` partial.
    - **Quoting:** attribute values must use double quotes (`cond="..."`), so string literals inside expressions must use single quotes (`styles="'links.css'"`).
 5. **Static passthrough whitelist & Node permission sandbox:**
-   - Only directories listed in `PASSTHROUGH_DIRS` in `build.mjs` (`assets`, `img`, `fonts`, `css`, plus `src/.htaccess`) are copied verbatim to `_site/`. Add any new static folder (e.g. `js`) to `PASSTHROUGH_DIRS`.
+   - Only directories listed in `PASSTHROUGH_DIRS` in `build.mjs` (`assets`, `img`, `fonts`, `css`, plus `src/.htaccess` and `src/robots.txt`) are copied verbatim to `_site/`. Add any new static folder (e.g. `js`) to `PASSTHROUGH_DIRS`.
    - `npm run build` and `npm run serve` run under `node --permission --allow-fs-read=./ --allow-fs-write=./_site/`. The `_site/` directory must exist before Node starts (`mkdir -p _site`), and `build.mjs` cannot write outside `_site/` or spawn child processes.
